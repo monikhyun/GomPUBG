@@ -1,0 +1,2 @@
+# GomPUBG
+PUBG strategy website
