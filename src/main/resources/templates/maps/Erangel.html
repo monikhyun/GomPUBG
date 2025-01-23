@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>배틀그라운드 정보 검색 - gompubg</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+</head>
+<style>
+    div#logo{
+        display: inline;
+    }
+
+    body {
+    font-family: inherit !important; /* 폰트 우선 적용 */
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* 네비게이션 바 스타일 */
+.navbar {
+    background-color: #333;
+    padding: 0;
+    margin: 0;
+}
+
+/* 기본 메뉴 스타일 */
+.menu {
+    list-style: none;
+    margin: 0 auto !important;  /* 중앙 정렬 */
+    padding: 0;
+    display: flex !important;
+    justify-content: center !important;
+}
+
+/* 메뉴 항목 스타일 */
+.menu-item {
+    position: relative;
+    text-align: center;
+}
+
+.menu-item > a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 200px;
+    height: 50px;
+    color: #fff;
+    text-decoration: none;
+    font-size: 18px;
+    background-color: #333;
+    font-weight: normal;
+}
+
+/* 메뉴 호버 시 색상 변경 */
+.menu-item:hover > a {
+    background-color: #555;
+}
+
+/* 서브메뉴 스타일 (1단계) */
+.submenu {
+    position: absolute;
+    top: 50px;  /* 부모 항목 아래 */
+    left: 0;
+    background-color: #444;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: none;
+    width: 200px;
+    text-align: center;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* 서브메뉴 링크 스타일 */
+.submenu li a {
+    display: block;
+    padding: 12px 0;
+    font-size: 16px;
+    color: #fff !important;
+    text-decoration: none !important;
+    font-weight: normal;
+}
+
+/* 서브메뉴 항목 스타일 */
+.submenu li {
+    border-bottom: 1px solid #666;
+}
+
+/* 서브메뉴 링크 호버 시 */
+.submenu li a:hover {
+    background-color: #666;
+}
+
+/* 방문한 링크 색상 및 스타일 유지 */
+.submenu li a:visited,
+.submenu li a:hover,
+.submenu li a:active,
+.submenu li a:focus {
+    color: #fff !important;
+    text-decoration: none !important;
+}
+
+/* 하위 서브메뉴 (2단계) 스타일 */
+.sub-submenu {
+    position: absolute;
+    top: 0; /* 상위 항목과 같은 높이 */
+    left: 100%;  /* 부모 항목 바로 옆에 배치 */
+    background-color: #555;
+    display: none;
+    width: 200px;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* 메뉴 항목에 마우스를 올리면 서브메뉴 표시 */
+.menu-item:hover > .submenu,
+.submenu-item:hover > .sub-submenu {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 하위 서브메뉴 오른쪽 정렬 및 위치 조정 */
+.submenu-item {
+    position: relative;
+}
+
+.form-check-input:checked {
+    background-color: #090a38; 
+    border-color: #748a94;
+}
+.form-check-inline {
+    gap: 20px; /* 옵션 간 간격 조정 */
+}
+
+#map {
+    margin-top: 20px;  /* 네비게이션 바와의 간격 조정 */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end; /* 옵션을 하단에 배치 */
+}
+
+.map-container {
+    display: flex;
+    align-items: center;  /* 이미지와 옵션들을 중앙 정렬 */
+    justify-content: center; /* 전체 섹션을 중앙 정렬 */
+    gap: 50px;  /* 이미지와 옵션 간 간격 */
+    max-width: 1000px; /* 전체 컨테이너의 최대 너비 */
+    margin: 0 auto;  /* 섹션 중앙 정렬 */
+    padding-top: 20px;  /* 상단 여백 추가 */
+}
+
+.map-img {
+    width: 60%; /* 이미지 크기를 줄이기 위해 조정 (원하는 비율로 조정 가능) */
+    height: auto;
+    border-radius: 10px;  /* 선택사항 */
+    object-fit: contain;  /* 이미지 비율 유지 */
+}
+
+.options-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;  /* 옵션들을 중앙 정렬 */
+    align-items: flex-start;  /* 왼쪽 정렬 */
+    gap: 15px;  /* 옵션 간 간격 조정 */
+    max-width: 30%; /* 옵션 컨테이너 크기 */
+}
+
+.form-check {
+    font-size: 18px;  /* 옵션 폰트 크기 조정 */
+}
+
+
+
+
+</style>
+<body>
+    <div id="logo">
+        <img th:src="@{/logo.png}">
+    </div>
+
+    <nav class="navbar">
+        <ul class="menu">
+            <li class="menu-item">
+                <a href="/">홈</a>
+            </li>
+            <li class="menu-item">
+                <a href="#">맵</a>
+                <ul class="submenu">
+                    <li><a href="/maps/Erangel">에란겔</a></li>
+                    <li><a href="/maps/Miramar">미라마</a></li>
+                    <li><a href="/maps/Taego">테이고</a></li>
+                    <li><a href="/maps/Deston">데스턴</a></li>
+                    <li><a href="/maps/Vikendi">비켄디</a></li>
+                    <li><a href="/maps/Rondo">론도</a></li>
+                    <li><a href="/maps/Sanhok">사녹</a></li>
+                    <li><a href="/maps/Paramo">파라모</a></li>
+                    <li><a href="/maps/Karakin">카라킨</a></li>
+                </ul>
+            </li>
+            <li class="menu-item">
+                <a href="#">무기</a>
+                <ul class="submenu">
+                    <li class="submenu-item">
+                        <a href="#">7.62mm</a>
+                        <ul class="submenu sub-submenu">
+                            <li class="submenu-item">
+                                <a href="#">AR</a>
+                                <ul class="submenu sub-submenu">
+                                    <li><a href="#">AKM</a></li>
+                                    <li><a href="#">Beryl M762</a></li>
+                                    <li><a href="#">Groza</a></li>
+                                    <li><a href="#">ACE32</a></li>
+                                    <li><a href="#">MK47 Mutant</a></li>
+                                    <li><a href="#">DP-28</a></li>
+                                    <li><a href="#">MG3</a></li>
+                                </ul>
+                            </li>
+                            <li class="submenu-item">
+                                <a href="#">DMR</a>
+                                <ul class="submenu sub-submenu">
+                                    <li><a href="#">SLR</a></li>
+                                    <li><a href="#">MK14</a></li>
+                                    <li><a href="#">Dragunov</a></li>
+                                    <li><a href="#">SKS</a></li>
+                                </ul>
+                            </li>
+                            <li class="submenu-item">
+                                <a href="#">SR</a>
+                                <ul class="submenu sub-submenu">
+                                    <li><a href="#">Kar98k</a></li>
+                                    <li><a href="#">M24</a></li>
+                                    <li><a href="#">Mosin Nagant</a></li>
+                                </ul>
+                            </li>
+                            <li class="submenu-item">
+                                <a href="#">HandGun</a>
+                                <ul class="submenu sub-submenu">
+                                    <li><a href="#">R1895</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <li class="submenu-item">
+                        <a href="#">5.56mm</a>
+                        <ul class="submenu sub-submenu">
+                            <li class="submenu-item">
+                                <a href="#">AR</a>
+                                <ul class="submenu sub-submenu">
+                                    <li><a href="#">M416</a></li>
+                                    <li><a href="#">SCAR-L</a></li>
+                                    <li><a href="#">M16A4</a></li>
+                                    <li><a href="#">G36C</a></li>
+                                    <li><a href="#">QBZ</a></li>
+                                    <li><a href="#">K2</a></li>
+                                    <li><a href="#">AUG</a></li>
+                                    <li><a href="#">FAMAS</a></li>
+                                    <li><a href="#">M249</a></li>
+                                </ul>
+                            </li>
+                            <li class="submenu-item">
+                                <a href="#">DMR</a>
+                                <ul class="submenu sub-submenu">
+                                    <li><a href="#">Mini14</a></li>
+                                    <li><a href="#">QBU</a></li>
+                                    <li><a href="#">MK12</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+            
+                    <li class="submenu-item">
+                        <a href="#">9mm</a>
+                        <ul class="submenu sub-submenu">
+                            <li class="submenu-item">
+                                <a href="#">SMG</a>
+                                <ul class="submenu sub-submenu">
+                                    <li><a href="#">UMP45</a></li>
+                                    <li><a href="#">Vector</a></li>
+                                    <li><a href="#">TommyGun</a></li>
+                                    <li><a href="#">PP-19 Bizon</a></li>
+                                    <li><a href="#">Micro UZI</a></li>
+                                    <li><a href="#">MP5K</a></li>
+                                    <li><a href="#">MP9</a></li>
+                                    <li><a href="#">JS9</a></li>
+                                </ul>
+                            </li>
+                            <li class="submenu-item">
+                                <a href="#">DMR</a>
+                                <ul class="submenu sub-submenu">
+                                    <li><a href="#">VSS</a></li>
+                                </ul>
+                            </li>
+                            <li class="submenu-item">
+                                <a href="#">HandGun</a>
+                                <ul class="submenu sub-submenu">
+                                    <li><a href="#">P92</a></li>
+                                    <li><a href="#">P18C</a></li>
+                                    <li><a href="#">Skorpion</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+            
+                    <li class="submenu-item">
+                        <a href="#">.45 ACP</a>
+                        <ul class="submenu sub-submenu">
+                            <li class="submenu-item">
+                                <a href="#">SR</a>
+                                <ul class="submenu sub-submenu">
+                                    <li><a href="#">Win94</a></li>
+                                </ul>
+                            </li>
+                            <li class="submenu-item">
+                                <a href="#">HandGun</a>
+                                <ul class="submenu sub-submenu">
+                                    <li><a href="#">P1911</a></li>
+                                    <li><a href="#">R45</a></li>
+                                    <li><a href="#">Deagle</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+            
+                    <li class="submenu-item">
+                        <a href="#">12게이지</a>
+                        <ul class="submenu sub-submenu">
+                            <li><a href="#">S686</a></li>
+                            <li><a href="#">S1897</a></li>
+                            <li><a href="#">S12K</a></li>
+                            <li><a href="#">DBS</a></li>
+                            <li><a href="#">sawed-Off</a></li>
+                            <li><a href="#">O12</a></li>
+                        </ul>
+                    </li>
+                    <li class="submenu-item">
+                        <a href="#">특수총</a>
+                        <ul class="submenu sub-submenu">
+                            <li><a href="#">AWM</a></li>
+                            <li><a href="#">P90</a></li>
+                            <li><a href="#">Crossbow</a></li>
+                            <li><a href="#">Flare Gun</a></li>
+                            <li><a href="#">M79</a></li>
+                            <li><a href="#">Mortar</a></li>
+                            <li><a href="#">Panzerfaust</a></li>
+                            <li><a href="#">Stun Gun</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            
+            <li class="menu-item">
+                <a href="#">지형 정보</a>
+                <ul class="submenu">
+                    <li><a href="#">서브메뉴 4-1</a></li>
+                    <li><a href="#">서브메뉴 4-2</a></li>
+                    <li><a href="#">서브메뉴 4-3</a></li>
+                    <li><a href="#">서브메뉴 4-4</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+    <section id="map">
+        <div class="map-container">
+            <img th:src="@{/Erangel.png}" class="map-img" alt="맵 이미지">
+            <div class="options-container">
+                <div class="form-check">
+                    <input class="form-check-input rounded-circle" type="checkbox" id="check1">
+                    <label class="form-check-label" for="check1">다시아</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input rounded-circle" type="checkbox" id="check2">
+                    <label class="form-check-label" for="check2">글라이더</label>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    
+</body>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const menuItems = document.querySelectorAll(".menu-item");
+
+    menuItems.forEach((item) => {
+        item.addEventListener("mouseenter", () => {
+            const submenu = item.querySelector(".submenu");
+            if (submenu) {
+                submenu.style.opacity = "1";
+                submenu.style.visibility = "visible";
+                submenu.style.display = "block";
+            }
+        });
+
+        item.addEventListener("mouseleave", () => {
+            const submenu = item.querySelector(".submenu");
+            if (submenu) {
+                submenu.style.opacity = "0";
+                submenu.style.visibility = "hidden";
+                submenu.style.display = "none";
+            }
+        });
+
+        // 하위 서브메뉴 (2단계)
+        const subItems = item.querySelectorAll(".submenu-item");
+
+        subItems.forEach((subItem) => {
+            subItem.addEventListener("mouseenter", () => {
+                const subSubmenu = subItem.querySelector(".sub-submenu");
+                if (subSubmenu) {
+                    subSubmenu.style.opacity = "1";
+                    subSubmenu.style.visibility = "visible";
+                    subSubmenu.style.display = "block";
+                }
+            });
+
+            subItem.addEventListener("mouseleave", () => {
+                const subSubmenu = subItem.querySelector(".sub-submenu");
+                if (subSubmenu) {
+                    subSubmenu.style.opacity = "0";
+                    subSubmenu.style.visibility = "hidden";
+                    subSubmenu.style.display = "none";
+                }
+            });
+        });
+    });
+});
+
+</script>
+</html>
