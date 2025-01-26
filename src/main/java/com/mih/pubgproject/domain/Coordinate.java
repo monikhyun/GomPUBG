@@ -15,16 +15,21 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Coordinate {
 
-    private Long xCoordinate;
+    private Double xCoordinate;
 
-    private Long yCoordinate;
+    private Double yCoordinate;
 
-    private Long xDestination;
+    private Double xDestination;
 
-    private Long yDestination;
+    private Double yDestination;
 
-    public Coordinate(Long xCoordinate, Long yCoordinate) {
+    public Coordinate(Double xCoordinate, Double yCoordinate) {
         this.xCoordinate = xCoordinate;
         this.yCoordinate = yCoordinate;
+    }
+
+    @Override
+    public String toString() {
+        return "Coordinate{x=" + xCoordinate + ", y=" + yCoordinate + "}";
     }
 }

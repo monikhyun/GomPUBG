@@ -146,6 +146,7 @@
 }
 
 .map-container {
+    position: relative;
     display: flex;
     align-items: center;  /* 이미지와 옵션들을 중앙 정렬 */
     justify-content: center; /* 전체 섹션을 중앙 정렬 */
@@ -368,69 +369,164 @@
     </nav>
     <section id="map">
         <div class="map-container">
-            <img th:src="@{/Erangel.png}" class="map-img" alt="맵 이미지">
+            <img th:src="@{'/' + ${mapname} + '.png'}" class="map-img" id="mapImage" alt="맵 이미지">
             <div class="options-container">
                 <div class="form-check">
-                    <input class="form-check-input rounded-circle" type="checkbox" id="check1">
-                    <label class="form-check-label" for="check1">다시아</label>
+                    <input class="form-check-input rounded-circle" type="checkbox" id="dacia">
+                    <label class="form-check-label" for="dacia">다시아</label>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input rounded-circle" type="checkbox" id="check2">
                     <label class="form-check-label" for="check2">글라이더</label>
                 </div>
             </div>
+            <div id="markerContainer"></div>
         </div>
     </section>
     
     
 </body>
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-    const menuItems = document.querySelectorAll(".menu-item");
+    document.addEventListener("DOMContentLoaded", () => {
+    const mapName = "[[${mapname}]]";  // Thymeleaf에서 현재 맵 이름 가져오기
+    console.log("Map Name from Thymeleaf: ", mapName);
+});
+    document.addEventListener("DOMContentLoaded", () => {
+        const mapName = "[[${mapname}]]";  // Thymeleaf에서 현재 맵 이름 가져오기
+        const mapImage = document.getElementById("mapImage");
+        const markerContainer = document.getElementById("markerContainer");
 
-    menuItems.forEach((item) => {
-        item.addEventListener("mouseenter", () => {
-            const submenu = item.querySelector(".submenu");
-            if (submenu) {
-                submenu.style.opacity = "1";
-                submenu.style.visibility = "visible";
-                submenu.style.display = "block";
+        document.getElementById("dacia").addEventListener("change", function() {
+            if (this.checked) {
+                loadMarkers(mapName, "dacia");
+            } else {
+                markerContainer.innerHTML = '';  // 체크 해제 시 마커 삭제
             }
         });
 
-        item.addEventListener("mouseleave", () => {
-            const submenu = item.querySelector(".submenu");
-            if (submenu) {
-                submenu.style.opacity = "0";
-                submenu.style.visibility = "hidden";
-                submenu.style.display = "none";
-            }
-        });
+    function loadMarkers(mapName, vehicleName) {
+        fetch(`/maps/${mapName}/coordinates?vehicleName=${vehicleName}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Received coordinates:", data);
+                markerContainer.innerHTML = '';
 
-        // 하위 서브메뉴 (2단계)
-        const subItems = item.querySelectorAll(".submenu-item");
+                if (Array.isArray(data)) {
+                    data.forEach(coord => {
+                        placeMarker(coord.xcoordinate, coord.ycoordinate);
+                    });
+                } else {
+                    console.error("Invalid data format:", data);
+                }
+            })
+            .catch(error => console.error('Fetch error:', error));
+    }
 
-        subItems.forEach((subItem) => {
-            subItem.addEventListener("mouseenter", () => {
-                const subSubmenu = subItem.querySelector(".sub-submenu");
-                if (subSubmenu) {
-                    subSubmenu.style.opacity = "1";
-                    subSubmenu.style.visibility = "visible";
-                    subSubmenu.style.display = "block";
+function placeMarker(relativeX, relativeY) {
+    const rect = mapImage.getBoundingClientRect();  // 현재 화면에서의 이미지 크기
+    const imgWidth = rect.width;  // 현재 표시된 가로 크기
+    const imgHeight = rect.height;  // 현재 표시된 세로 크기
+
+    const marker = document.createElement("div");
+    marker.classList.add("marker");
+
+    // 이미지 내부 좌표 기준 위치 조정
+    marker.style.left = `${relativeX * imgWidth}px`;
+    marker.style.top = `${relativeY * imgHeight}px`;
+
+    markerContainer.appendChild(marker);
+}
+    mapImage.onload = function () {
+        loadMarkers(mapName, "dacia");
+    };
+    });
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const menuItems = document.querySelectorAll(".menu-item");
+
+        menuItems.forEach((item) => {
+            item.addEventListener("mouseenter", () => {
+                const submenu = item.querySelector(".submenu");
+                if (submenu) {
+                    submenu.style.opacity = "1";
+                    submenu.style.visibility = "visible";
+                    submenu.style.display = "block";
                 }
             });
 
-            subItem.addEventListener("mouseleave", () => {
-                const subSubmenu = subItem.querySelector(".sub-submenu");
-                if (subSubmenu) {
-                    subSubmenu.style.opacity = "0";
-                    subSubmenu.style.visibility = "hidden";
-                    subSubmenu.style.display = "none";
+            item.addEventListener("mouseleave", () => {
+                const submenu = item.querySelector(".submenu");
+                if (submenu) {
+                    submenu.style.opacity = "0";
+                    submenu.style.visibility = "hidden";
+                    submenu.style.display = "none";
                 }
+            });
+
+            // 하위 서브메뉴 (2단계)
+            const subItems = item.querySelectorAll(".submenu-item");
+
+            subItems.forEach((subItem) => {
+                subItem.addEventListener("mouseenter", () => {
+                    const subSubmenu = subItem.querySelector(".sub-submenu");
+                    if (subSubmenu) {
+                        subSubmenu.style.opacity = "1";
+                        subSubmenu.style.visibility = "visible";
+                        subSubmenu.style.display = "block";
+                    }
+                });
+
+                subItem.addEventListener("mouseleave", () => {
+                    const subSubmenu = subItem.querySelector(".sub-submenu");
+                    if (subSubmenu) {
+                        subSubmenu.style.opacity = "0";
+                        subSubmenu.style.visibility = "hidden";
+                        subSubmenu.style.display = "none";
+                    }
+                });
             });
         });
     });
-});
+
+        document.querySelector(".map-img").addEventListener("click", (event) => {
+        const rect = event.target.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        console.log(`X: ${x}, Y: ${y}`);
+        const relativeX = (x / rect.width).toFixed(4);
+    const relativeY = (y / rect.height).toFixed(4);
+    console.log(`Relative X: ${relativeX}, Relative Y: ${relativeY}`);
+
+    });
+
+
 
 </script>
+<style>
+    #markerContainer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 60%;  /* 이미지의 비율을 동일하게 유지 */
+        height: auto;
+        pointer-events: none;
+        transform: translate(20%, 0);  /* 컨테이너 중앙 정렬 */
+    }
+
+        .marker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: red;
+            border-radius: 50%;
+            border: 2px solid white;
+            transform: translate(-50%, -50%);
+        }
+</style>
 </html>
