@@ -73,6 +73,7 @@
     transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
     opacity: 0;
     visibility: hidden;
+    z-index: 10;
 }
 
 /* 서브메뉴 링크 스타일 */
@@ -115,6 +116,7 @@
     transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
     opacity: 0;
     visibility: hidden;
+    z-index: 10;
 }
 
 /* 메뉴 항목에 마우스를 올리면 서브메뉴 표시 */
@@ -148,10 +150,13 @@
 .map-container {
     position: relative;
     display: flex;
+    z-index: 5;
     align-items: center;  /* 이미지와 옵션들을 중앙 정렬 */
     justify-content: center; /* 전체 섹션을 중앙 정렬 */
     gap: 50px;  /* 이미지와 옵션 간 간격 */
     max-width: 1000px; /* 전체 컨테이너의 최대 너비 */
+    min-width: 300px;  /* 최소 너비 추가 */
+    min-height: 300px; /* 최소 높이 추가 */
     margin: 0 auto;  /* 섹션 중앙 정렬 */
     padding-top: 20px;  /* 상단 여백 추가 */
 }
@@ -159,8 +164,11 @@
 .map-img {
     width: 60%; /* 이미지 크기를 줄이기 위해 조정 (원하는 비율로 조정 가능) */
     height: auto;
+    z-index: 1;
     border-radius: 10px;  /* 선택사항 */
     object-fit: contain;  /* 이미지 비율 유지 */
+    min-width: 250px;  /* 최소 너비 설정 */
+    min-height: 250px; /* 최소 높이 설정 */
 }
 
 .options-container {
@@ -437,7 +445,7 @@ function placeMarker(relativeX, relativeY) {
 
     // 이미지 내부 좌표 기준 위치 조정
     marker.style.left = `${relativeX * imgWidth}px`;
-    marker.style.top = `${relativeY * imgHeight}px`;
+    marker.style.top = `${relativeY * imgHeight+20}px`;
 
     markerContainer.appendChild(marker);
 }
@@ -516,16 +524,18 @@ function placeMarker(relativeX, relativeY) {
         width: 60%;  /* 이미지의 비율을 동일하게 유지 */
         height: auto;
         pointer-events: none;
+        z-index: 2;
         transform: translate(20%, 0);  /* 컨테이너 중앙 정렬 */
     }
 
         .marker {
             position: absolute;
-            width: 20px;
-            height: 20px;
+            width: 10px;
+            height: 10px;
             background-color: red;
             border-radius: 50%;
             border: 2px solid white;
+            z-index: 2;
             transform: translate(-50%, -50%);
         }
 </style>
