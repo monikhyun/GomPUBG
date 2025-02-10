@@ -155,20 +155,20 @@
     justify-content: center; /* 전체 섹션을 중앙 정렬 */
     gap: 50px;  /* 이미지와 옵션 간 간격 */
     max-width: 1000px; /* 전체 컨테이너의 최대 너비 */
-    min-width: 300px;  /* 최소 너비 추가 */
-    min-height: 300px; /* 최소 높이 추가 */
+    min-width: 600px;  /* 최소 너비 추가 */
+    min-height: 600px; /* 최소 높이 추가 */
     margin: 0 auto;  /* 섹션 중앙 정렬 */
     padding-top: 20px;  /* 상단 여백 추가 */
 }
 
 .map-img {
-    width: 60%; /* 이미지 크기를 줄이기 위해 조정 (원하는 비율로 조정 가능) */
-    height: auto;
+    width: 600px; /* 이미지 크기를 줄이기 위해 조정 (원하는 비율로 조정 가능) */
+    height: 600px;
     z-index: 1;
     border-radius: 10px;  /* 선택사항 */
     object-fit: contain;  /* 이미지 비율 유지 */
-    min-width: 250px;  /* 최소 너비 설정 */
-    min-height: 250px; /* 최소 높이 설정 */
+    min-width: 600px;  /* 최소 너비 설정 */
+    min-height: 600px; /* 최소 높이 설정 */
 }
 
 .options-container {
@@ -377,18 +377,32 @@
     </nav>
     <section id="map">
         <div class="map-container">
-            <img th:src="@{'/' + ${mapname} + '.png'}" class="map-img" id="mapImage" alt="맵 이미지">
+            <div class="map-wrapper"> <!-- 추가 -->
+                <img th:src="@{'/' + ${mapname} + '.png'}" class="map-img" id="mapImage" alt="맵 이미지">
+                <div id="markerContainer"></div>
+            </div>
             <div class="options-container">
                 <div class="form-check">
                     <input class="form-check-input rounded-circle" type="checkbox" id="dacia">
                     <label class="form-check-label" for="dacia">다시아</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input rounded-circle" type="checkbox" id="check2">
-                    <label class="form-check-label" for="check2">글라이더</label>
+                    <input class="form-check-input rounded-circle" type="checkbox" id="Glider">
+                    <label class="form-check-label" for="Glider">글라이더</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input rounded-circle" type="checkbox" id="UAZ">
+                    <label class="form-check-label" for="UAZ">UAZ</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input rounded-circle" type="checkbox" id="Boat">
+                    <label class="form-check-label" for="Boat">보트</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input rounded-circle" type="checkbox" id="Supply">
+                    <label class="form-check-label" for="Supply">비밀 지하창고</label>
                 </div>
             </div>
-            <div id="markerContainer"></div>
         </div>
     </section>
     
@@ -396,20 +410,76 @@
 </body>
 <script>
     document.addEventListener("DOMContentLoaded", () => {
-    const mapName = "[[${mapname}]]";  // Thymeleaf에서 현재 맵 이름 가져오기
-    console.log("Map Name from Thymeleaf: ", mapName);
-});
-    document.addEventListener("DOMContentLoaded", () => {
         const mapName = "[[${mapname}]]";  // Thymeleaf에서 현재 맵 이름 가져오기
         const mapImage = document.getElementById("mapImage");
         const markerContainer = document.getElementById("markerContainer");
 
-        document.getElementById("dacia").addEventListener("change", function() {
-            if (this.checked) {
-                loadMarkers(mapName, "dacia");
-            } else {
-                markerContainer.innerHTML = '';  // 체크 해제 시 마커 삭제
+        let markers = {};
+        markerContainer.innerHTML = '';
+
+        document.querySelectorAll(".form-check-input").forEach(checkbox => {
+            checkbox.addEventListener("change", function() {
+                const vehicleName = this.id; // 체크박스의 ID가 vehicleName 역할을 함
+
+                if (vehicleName === "Supply") {
+                    if (this.checked) {
+                        loadSupplyMarkers(mapName, vehicleName); // 비밀 지하창고용 메소드 실행
+                    } else {
+                        removeSupplyMarkers(); // 비밀 지하창고 마커 삭제
+                    }
+                } else {
+                    if (this.checked) {
+                        loadMarkers(mapName, vehicleName);
+                    } else {
+                        removeMarkers(vehicleName);
+                    }
+                }
+            });
+        });
+
+        function loadSupplyMarkers(mapName, vehicleName) {
+            fetch(`/maps/${mapName}/${vehicleName}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Received secret bunker coordinates:", data);
+                    if (!markers["Supply"]) {
+                        markers["Supply"] = [];
+                    }
+                    data.forEach(coord => {
+                        const marker = createSupplyMarker(coord.xcoordinate, coord.ycoordinate);
+                        markers["Supply"].push(marker);
+                    });
+                })
+                .catch(error => console.error('Fetch error:', error));
+        }
+
+        function removeSupplyMarkers() {
+            if (markers["Supply"]) {
+                markers["Supply"].forEach(({ marker }) => marker.remove());
+                markers["Supply"] = [];
             }
+        }
+
+
+
+        function createSupplyMarker(relativeX, relativeY) {
+            const marker = document.createElement("div");
+            marker.classList.add("marker", "marker-supply");
+            updateMarkerPosition(marker, relativeX, relativeY);
+            markerContainer.appendChild(marker);
+            return { marker, relativeX, relativeY };
+        }
+
+
+        window.addEventListener("resize", () => {
+            Object.values(markers).flat().forEach(({ marker, relativeX, relativeY }) => {
+                updateMarkerPosition(marker, relativeX, relativeY);
+            });
         });
 
     function loadMarkers(mapName, vehicleName) {
@@ -422,36 +492,62 @@
             })
             .then(data => {
                 console.log("Received coordinates:", data);
-                markerContainer.innerHTML = '';
-
-                if (Array.isArray(data)) {
-                    data.forEach(coord => {
-                        placeMarker(coord.xcoordinate, coord.ycoordinate);
-                    });
-                } else {
-                    console.error("Invalid data format:", data);
+                // 새로운 마커를 추가하기 전에 기존 마커 유지
+                if (!markers[vehicleName]) {
+                    markers[vehicleName] = [];
                 }
+
+                data.forEach(coord => {
+                    const marker = createMarker(coord.xcoordinate, coord.ycoordinate, vehicleName);
+                    markers[vehicleName].push(marker);
+                });
             })
             .catch(error => console.error('Fetch error:', error));
     }
 
-function placeMarker(relativeX, relativeY) {
-    const rect = mapImage.getBoundingClientRect();  // 현재 화면에서의 이미지 크기
-    const imgWidth = rect.width;  // 현재 표시된 가로 크기
-    const imgHeight = rect.height;  // 현재 표시된 세로 크기
+        function removeMarkers(vehicleName) {
+            if (markers[vehicleName]) {
+                markers[vehicleName].forEach(({ marker }) => marker.remove());
+                markers[vehicleName] = [];
+            }
+        }
 
-    const marker = document.createElement("div");
-    marker.classList.add("marker");
+        // 마커 생성 (차량별로 다르게 스타일 적용)
+        function createMarker(relativeX, relativeY, vehicleName) {
+            const marker = document.createElement("div");
+            marker.classList.add("marker");
 
-    // 이미지 내부 좌표 기준 위치 조정
-    marker.style.left = `${relativeX * imgWidth}px`;
-    marker.style.top = `${relativeY * imgHeight+20}px`;
+            // 차량 종류별 마커 색상 다르게 적용
+            if (vehicleName === "dacia") {
+                marker.classList.add("marker-dacia");
+            } else if (vehicleName === "Glider") {
+                marker.classList.add("marker-glider");
+            } else if (vehicleName === "UAZ") {
+                marker.classList.add("marker-UAZ");
+            } else if (vehicleName === "Boat") {
+                marker.classList.add("marker-boat");
+            } else if (vehicleName === "Supply") {
+                marker.classList.add("marker-supply");
+            }
 
-    markerContainer.appendChild(marker);
-}
-    mapImage.onload = function () {
-        loadMarkers(mapName, "dacia");
-    };
+            updateMarkerPosition(marker, relativeX, relativeY);
+            markerContainer.appendChild(marker);
+
+            return { marker, relativeX, relativeY };
+        }
+
+        // 마커 위치 설정 (고정)
+        function updateMarkerPosition(marker, relativeX, relativeY) {
+            marker.style.left = `${(relativeX) * 100}%`;
+            marker.style.top = `${(relativeY) * 100}%`;
+        }
+
+        // 창 크기 변경 시 모든 마커 위치 업데이트
+        window.addEventListener("resize", () => {
+            Object.values(markers).flat().forEach(({ marker, relativeX, relativeY }) => {
+                updateMarkerPosition(marker, relativeX, relativeY);
+            });
+        });
     });
 
 
@@ -517,26 +613,56 @@ function placeMarker(relativeX, relativeY) {
 
 </script>
 <style>
+    .map-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
     #markerContainer {
         position: absolute;
         top: 0;
         left: 0;
-        width: 60%;  /* 이미지의 비율을 동일하게 유지 */
-        height: auto;
+        width: 100%;  /* 이미지의 비율을 동일하게 유지 */
+        height: 100%;
+        min-height: 600px;
+        min-width: 600px;
         pointer-events: none;
         z-index: 2;
-        transform: translate(20%, 0);  /* 컨테이너 중앙 정렬 */
+        transform: translate(0, 0);  /* 컨테이너 중앙 정렬 */
     }
 
         .marker {
             position: absolute;
             width: 10px;
             height: 10px;
-            background-color: red;
             border-radius: 50%;
             border: 2px solid white;
             z-index: 2;
             transform: translate(-50%, -50%);
         }
+
+    /* 다시아 차량 마커 (빨간색) */
+    .marker-dacia {
+        background-color: red;
+    }
+
+    /* 글라이더 차량 마커 (파란색) */
+    .marker-glider {
+        background-color: blue;
+    }
+
+    .marker-UAZ {
+        background-color: white;
+    }
+
+    .marker-boat{
+        background-color: aqua;
+    }
+
+    .marker-supply {
+        background-color: green;
+    }
 </style>
 </html>

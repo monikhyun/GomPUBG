@@ -26,7 +26,7 @@ public class Map {
     private List<MapVehicle> mapVehicles = new ArrayList<>();
 
     @Transient
-    private Coordinate airplaneXY;
+    private MapCoordinate airplaneXY;
 
     @Lob // 대용량 데이터
     private byte[] mapData;

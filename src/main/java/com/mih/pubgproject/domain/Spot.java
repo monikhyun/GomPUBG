@@ -17,6 +17,8 @@ public class Spot {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long spotId;
 
-    @OneToMany(mappedBy = "spot")
-    private List<place> spotData = new ArrayList<>();
+    private String spotName;
+
+    @OneToMany(mappedBy = "spot", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MapSpot> mapSpots = new ArrayList<>();
 }

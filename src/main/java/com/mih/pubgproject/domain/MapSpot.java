@@ -10,7 +10,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-public class MapVehicle {
+public class MapSpot {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,10 +21,10 @@ public class MapVehicle {
     private Map map;
 
     @ManyToOne
-    @JoinColumn(name = "vehicle_id", nullable = false)
-    private Vehicle vehicle;
+    @JoinColumn(name = "spot_id", nullable = false)
+    private Spot spot;
 
     @ElementCollection
-    @CollectionTable(name = "map_vehicle_coordinates", joinColumns = @JoinColumn(name = "map_vehicle_id"))
+    @CollectionTable(name = "map_spot_coordinates", joinColumns = @JoinColumn(name = "map_spot_id"))
     private final List<MapCoordinate> coordinates = new ArrayList<>();
 }

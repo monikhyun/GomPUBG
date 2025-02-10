@@ -2,7 +2,6 @@ package com.mih.pubgproject.domain;
 
 
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.Embedded;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,20 +12,11 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Coordinate {
+public class MapCoordinate {
 
     private Double xCoordinate;
 
     private Double yCoordinate;
-
-    private Double xDestination;
-
-    private Double yDestination;
-
-    public Coordinate(Double xCoordinate, Double yCoordinate) {
-        this.xCoordinate = xCoordinate;
-        this.yCoordinate = yCoordinate;
-    }
 
     @Override
     public String toString() {
